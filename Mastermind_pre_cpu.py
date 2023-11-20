@@ -1,5 +1,5 @@
 import random
-import pandas as pd
+#import pandas as pd
 import copy
 import os
 import time
@@ -11,7 +11,7 @@ import time
 #        self.p3=p3
 #        self.p4=p4
 #
-#    def __str__(self):
+#    def __str__(self):0
 #        return "p1={},p2={},p3={},p4={}".format(self.p1,self.p2,self.p3,self.p4)
 
 def check(i,j):

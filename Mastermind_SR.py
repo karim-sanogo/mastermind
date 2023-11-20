@@ -74,6 +74,4 @@ def color_check():
             color_counter += 1
     return spaces_counter, color_counter
 
-
-
-#print(color_check())
+print(color_check())

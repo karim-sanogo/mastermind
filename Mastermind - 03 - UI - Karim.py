@@ -1,172 +1,339 @@
 import pygame
+import math
+from pygame import gfxdraw
+from sys import exit
 import random
 
-# Initialize Pygame
 pygame.init()
 
-# Constants
-SCREEN_WIDTH, SCREEN_HEIGHT = 450, 950
-BG_COLOR = (30, 30, 30)
-PEG_COLORS = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white"]
-PEG_RADIUS = 20
-COLOR_PICKER_Y_START = SCREEN_HEIGHT - 2 * (PEG_RADIUS * 2)
-TRIES = 10
-FEEDBACK_RADIUS = 5
-BUTTON_COLOR = (0, 255, 0)
-BUTTON_TEXT_COLOR = pygame.Color('white')
-BUTTON_RECT = pygame.Rect(350, SCREEN_HEIGHT - 100, 100, 50)
-PEG_POSITIONS = [(60 + j * (2 * PEG_RADIUS + 10), SCREEN_HEIGHT - 150 - i * (2 * PEG_RADIUS + 10)) for i in range(TRIES) for j in range(4)]
+class Button:
+    def __init__(self, screen, x, y, width, height, text, font_path, font_size, action=None):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+        self.font = pygame.freetype.Font(font_path, font_size)
+        self.action = action
+        self.hovered = False
+        self.clicked = False
+        self.default_color = (106, 190, 77)
+        self.hover_color = (90, 147, 71)
+        self.clicked_color = (29, 55, 20)
+        self.text_color = (255, 255, 255)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
-# Set up the display
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    def draw(self):
+        if self.clicked:
+            color = self.clicked_color
+        elif self.hovered:
+            color = self.hover_color
+        else:
+            color = self.default_color
+
+        pygame.draw.rect(self.screen, color, self.rect)
+
+        text_lines = self.text.split('\n')
+        line_height = self.font.get_sized_height() + 2
+        start_y = self.y + (self.height - line_height * len(text_lines)) // 2
+
+        for i, line in enumerate(text_lines):
+            text_surf, text_rect = self.font.render(line, self.text_color)
+            text_rect.centerx = self.rect.centerx
+            text_rect.y = start_y + i * line_height
+            self.screen.blit(text_surf, text_rect)
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.clicked = True
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if self.rect.collidepoint(event.pos) and self.clicked:
+                self.clicked = False
+                if all_circles_filled(rows[active_row]):  # Check if all circles are filled before making a move
+                    self.action()
+                else:
+                    print("Not all circles are filled!")  # Provide feedback to the player
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.clicked = False
+            self.hovered = self.rect.collidepoint(event.pos)
+        elif event.type == pygame.MOUSEMOTION:
+            self.hovered = self.rect.collidepoint(event.pos)
+
+class RoundCircle:
+    def __init__(self, screen, x, y, r, color):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.r = r
+        self.color = color
+
+    def draw_circle(self):
+        # Prettier circles than pygame.draw.circle
+        gfxdraw.filled_circle(self.screen, self.x, self.y, self.r, self.color)
+        gfxdraw.aacircle(self.screen, self.x, self.y, self.r, self.color)
+
+    def update_circle(self, x, y, r, color):
+        self.x = x
+        self.y = y
+        self.r = r
+        self.color = color
+
+    def is_clicked(self, mouse_pos):
+        distance = math.sqrt((self.x - mouse_pos[0]) ** 2 + (self.y - mouse_pos[1]) ** 2)
+        return distance <= self.r
+
+
+class CircleRow:
+    def __init__(self, screen, start_y, big_radius, small_radius, color, start_x=80, big_gap=10, small_gap=10, small_big_gap=30, include_small=True):
+        self.screen = screen
+        self.start_y = start_y
+        self.big_radius = big_radius
+        self.small_radius = small_radius
+        self.color = color
+        self.start_x = start_x
+        self.big_gap = big_gap
+        self.small_gap = small_gap
+        self.include_small = include_small
+        self.circles = []
+
+        for i in range(4):
+            x = start_x + i * (2 * big_radius + big_gap)
+            self.circles.append(RoundCircle(screen, x, start_y, big_radius, color))
+
+        # Create a separate list for hint circles
+        self.hint_circles = []
+        if include_small:
+            small_start_x = start_x + 4 * (2 * big_radius) + small_big_gap
+            # Create hint circles
+            for i in range(4):
+                x = small_start_x + (i % 2) * (2 * small_radius + small_gap)
+                y_offset = 0 if i < 2 else -2 * small_radius - small_gap
+                self.hint_circles.append(RoundCircle(screen, x, start_y + 16 + y_offset, small_radius, color))
+
+
+    def draw(self):
+        for circle in self.circles + self.hint_circles:  # Zeichnen aller Kreise, einschließlich der Hinweiskreise
+            circle.draw_circle()
+
+screen = pygame.display.set_mode((450, 950))
+
 pygame.display.set_caption("Mastermind")
+pygame.display.set_icon(pygame.image.load("Mastermind/Assets/Images/mastermind_icon.png"))
 
-# Fonts
-pygame.font.init()
-font = pygame.font.SysFont('arial', 30)
+clock = pygame.time.Clock()
 
-# Create pegs and placeholders
-pegs = {color: pygame.Surface((PEG_RADIUS * 2, PEG_RADIUS * 2), pygame.SRCALPHA) for color in PEG_COLORS}
-placeholder = pygame.Surface((PEG_RADIUS * 2, PEG_RADIUS * 2), pygame.SRCALPHA)
-pygame.draw.circle(placeholder, (150, 150, 150), (PEG_RADIUS, PEG_RADIUS), PEG_RADIUS)
-for color, surf in pegs.items():
-    pygame.draw.circle(surf, pygame.Color(color), (PEG_RADIUS, PEG_RADIUS), PEG_RADIUS)
+header_font = pygame.freetype.Font("Mastermind/Assets/Fonts/Inter-Bold.ttf", 20)
+header_title, header_rect = header_font.render("MASTERMIND", (255, 255, 255))
 
-# Game variables
-current_row = TRIES - 1
-selected_color = None
-current_guess = [None] * 4
-computer_pick = random.sample(PEG_COLORS, 4)
-feedback = [[None] * 4 for _ in range(TRIES)]
-dragging = False
-dragged_peg = None
-dragged_peg_pos = (0, 0)
-peg_rects = [pygame.Rect(x, y, PEG_RADIUS * 2, PEG_RADIUS * 2) for x, y in [(50 + PEG_RADIUS * 3 * i, COLOR_PICKER_Y_START) for i in range(4)] + [(50 + PEG_RADIUS * 3 * i, COLOR_PICKER_Y_START + PEG_RADIUS * 2 + 10) for i in range(4)]]
-notification_msg = ''
-notification_time = 0
+header = pygame.Surface((450, 53))
+header.fill(("#4F4F4F"))
 
-def draw_board():
-    # Draw the grey placeholders for guesses and feedback for each try
-    for i in range(TRIES):
-        for j in range(4):  # 4 grey circles for guesses
-            pygame.draw.circle(screen, (150, 150, 150),
-                               PEG_POSITIONS[i * 4 + j], PEG_RADIUS)
-        if i < TRIES - 1:  # Skip the last row for feedback
-            for k in range(2):  # 2 smaller grey circles for feedback, in two rows
-                for l in range(2):
-                    pygame.draw.circle(screen, (150, 150, 150),
-                                       (PEG_POSITIONS[i * 4 + 3][0] + 45 + k * (FEEDBACK_RADIUS * 2 + 5),
-                                        PEG_POSITIONS[i * 4 + 3][1] - 5 + l * (FEEDBACK_RADIUS * 2 + 5)),
-                                        FEEDBACK_RADIUS)
+header_arrow = pygame.image.load("Mastermind/Assets/Images/back-arrow.png")
 
-def draw_ui():
-    # Draw the "Make Move" button with text
-    pygame.draw.rect(screen, BUTTON_COLOR, BUTTON_RECT)
-    text_surface = font.render('Make Move', True, BUTTON_TEXT_COLOR)
-    text_rect = text_surface.get_rect(center=BUTTON_RECT.center)
-    screen.blit(text_surface, text_rect.topleft)
+clr_store = pygame.Surface((290, 150))
+clr_store.fill(("#4F4F4F"))
 
-    # Draw the color picker pegs in two rows
-    for i, rect in enumerate(peg_rects):
-        screen.blit(pegs[PEG_COLORS[i]], rect.topleft)
+blue = RoundCircle(screen, 80, 813, 30, (10, 156, 170))
+orange = RoundCircle(screen, 150, 813, 30, (255, 142, 20))
+red = RoundCircle(screen, 220, 813, 30, (255, 82, 93))
+purple = RoundCircle(screen, 290, 813, 30, (134, 79, 172))
+dark_green = RoundCircle(screen, 80, 883, 30, (1, 95, 77))
+light_green = RoundCircle(screen, 150, 883, 30, (80, 185, 72))
+black = RoundCircle(screen, 220, 883, 30, (0, 0, 0))
+white = RoundCircle(screen, 290, 883, 30, (255, 255, 255))
 
-    # Draw notification message
-    if notification_msg:
-        notification_surf = font.render(notification_msg, True, pygame.Color('red'))
-        screen.blit(notification_surf, (50, 10))
+colors = [blue, orange, red, purple, dark_green, light_green, black, white]
+tries = 10
 
-def handle_drag_and_drop(event):
-    global selected_color, dragging, dragged_peg_surface, current_guess, dragging_from_current_guess
-    mouse_pos = pygame.mouse.get_pos()
+def generate_secret_code(color_objects):
+    color_values = [obj.color for obj in color_objects]
+    return random.sample(color_values, 4)
 
-    if event.type == pygame.MOUSEBUTTONDOWN:
-        # Check if the click is on any of the color pegs to start dragging
-        for i, rect in enumerate(peg_rects):
-            if rect.collidepoint(mouse_pos) and not dragging:
-                selected_color = PEG_COLORS[i]
-                dragging = True
-                dragged_peg_surface = pegs[selected_color].copy()  # Create a copy of the peg surface to drag
-                dragging_from_current_guess = False
-                return
-        # Check if the click is on the current row's pegs to pick up a color
-        for i, pos in enumerate(PEG_POSITIONS[current_row * 4:(current_row + 1) * 4]):
-            rect = pygame.Rect(pos[0] - PEG_RADIUS, pos[1] - PEG_RADIUS, PEG_RADIUS * 2, PEG_RADIUS * 2)
-            if rect.collidepoint(mouse_pos) and not dragging:
-                if current_guess[i] is not None:
-                    selected_color = current_guess[i]
-                    current_guess[i] = None
-                    dragging = True
-                    dragged_peg_surface = pegs[selected_color].copy()  # Create a copy of the peg surface to drag
-                    dragging_from_current_guess = True
-                return
+# Funktion, um die Übereinstimmungen zu überprüfen
+def check_guess(guess, secret_code):
+    result = {'black': 0, 'white': 0}  # Schwarz für richtige Farbe und Position, Weiß für nur richtige Farbe
+    temp_secret_code = list(secret_code)  # Temporäre Kopie, um Treffer zu markieren
 
-    elif event.type == pygame.MOUSEBUTTONUP and dragging:
-        # When releasing the mouse button, try to place the peg in the current row
-        for i, pos in enumerate(PEG_POSITIONS[current_row * 4:(current_row + 1) * 4]):
-            rect = pygame.Rect(pos[0] - PEG_RADIUS, pos[1] - PEG_RADIUS, PEG_RADIUS * 2, PEG_RADIUS * 2)
-            if rect.collidepoint(mouse_pos):
-                if current_guess[i] is None:  # Only place the peg if the spot is empty
-                    current_guess[i] = selected_color
-                    break
-        dragging = False
-        dragged_peg_surface = None
+    # Überprüfen Sie zuerst auf exakte Treffer (Schwarz)
+    for i in range(len(guess)):
+        if guess[i] == temp_secret_code[i]:
+            result['black'] += 1
+            temp_secret_code[i] = None  # Markieren Sie diesen Treffer, um Doppelzählungen zu vermeiden
 
-    elif event.type == pygame.MOUSEMOTION and dragging:
-        dragged_peg_pos = (mouse_pos[0] - PEG_RADIUS, mouse_pos[1] - PEG_RADIUS)
+    # Überprüfen Sie auf richtige Farbe, aber falsche Position (Weiß)
+    for i in range(len(guess)):
+        if guess[i] in temp_secret_code and guess[i] != secret_code[i]:
+            result['white'] += 1
+            temp_secret_code[temp_secret_code.index(guess[i])] = None  # Markieren Sie diesen Treffer
 
+    return result
 
+# Erzeugen Sie den Secret Code beim Start des Spiels
+secret_code_colors = generate_secret_code(colors)
 
-def check_guess():
-    global feedback, current_row, current_guess, notification_msg, notification_time
-    if None in current_guess:
-        notification_msg = "You must select all 4 colors!"
-        notification_time = pygame.time.get_ticks()
+# Function to check if all large circles in the active row are filled with color
+def all_circles_filled(row):
+    default_color = (54, 54, 54)  # Annahme, dass dies die Standardfarbe ist
+    return all(circle.color != default_color for circle in row.circles[:4])  # Assuming (54, 54, 54) is the default color
+
+# Funktion, um das Ergebnis in den kleinen Kreisen anzuzeigen
+def display_result(row_number, result):
+    # Mischen der Ergebnisse, um eine zufällige Reihenfolge zu erhalten
+    results = ['black'] * result['black'] + ['white'] * result['white']
+    random.shuffle(results)
+    
+    # Anzeigen der Ergebnisse in den kleinen Kreisen
+    for i, res in enumerate(results):
+        color = (0, 0, 0) if res == 'black' else (255, 255, 255)
+        rows[row_number].hint_circles[i].color = color
+    
+    # Nicht verwendete kleine Kreise auf Standardfarbe setzen
+    for i in range(len(results), 4):
+        rows[row_number].hint_circles[i].color = (54, 54, 54)
+
+# Funktion, um den geheimen Code in der obersten Reihe anzuzeigen
+def display_secret_code(secret_code_colors):
+    for i, color in enumerate(secret_code_colors):
+        rows[9].circles[i].color = color
+
+game_over = False
+
+# Refactored make_move function for better readability and logic flow
+def make_move():
+    global active_row  # Access the global active_row variable
+    active_row_circles = rows[active_row].circles[:4]  # Reference to the large circles in the active row
+    
+    if not all_circles_filled(rows[active_row]):
+        print("Not all fields are filled!")  # Replace with actual feedback in your game
+        return  # Exit the function if not all circles are filled
+    
+    guess = [circle.color for circle in active_row_circles]  # Get colors of the filled circles
+    result = check_guess(guess, secret_code_colors)
+    
+    # Visualize the result in the hint circles
+    hint_circles = rows[active_row].hint_circles  # Reference to the hint circles in the active row
+    # Reset hint circles to default color before applying new hints
+    for hint_circle in hint_circles:
+        hint_circle.color = (54, 54, 54)
+        
+    hints = ['black'] * result['black'] + ['white'] * result['white']
+    for i, hint in enumerate(hints):
+        hint_color = (0, 0, 0) if hint == 'black' else (255, 255, 255)
+        hint_circles[i].color = hint_color
+    
+    # Überprüfen der Farben und Anzeigen der Ergebnisse
+    guess = [circle.color for circle in rows[active_row].circles[:4]]
+    result = check_guess(guess, secret_code_colors)
+    display_result(active_row, result)
+
+    # Überprüfen Sie, ob das Spiel vorbei ist (der Code erraten wurde)
+    if result['black'] == 4:
+        display_secret_code(secret_code_colors)
+        game_over = True  # Spielende, wenn der Code erraten wurde
+        return
+
+    # Wechseln Sie zur nächsten Reihe, wenn das Spiel noch nicht vorbei ist
+    if active_row < tries - 2:
+        active_row += 1
     else:
-        correct_color = 0
-        correct_position = 0
-        guess_copy = current_guess[:]
-        pick_copy = computer_pick[:]
-        # First check for correct color and position
-        for i in range(4):
-            if guess_copy[i] == pick_copy[i]:
-                correct_position += 1
-                guess_copy[i] = pick_copy[i] = None
-        # Then check for correct color
-        for i in range(4):
-            if guess_copy[i] and guess_copy[i] in pick_copy:
-                correct_color += 1
-                pick_copy[pick_copy.index(guess_copy[i])] = None
-        # Update feedback for correct guesses
-        feedback[current_row] = ['black'] * correct_position + ['white'] * correct_color
-        current_row -= 1  # Move to the next row
-        current_guess = [None] * 4
+        # Zeigen Sie den geheimen Code in der obersten Reihe an, wenn alle Versuche aufgebraucht sind
+        display_secret_code(secret_code_colors)
+        game_over = True  # Spielende, wenn alle Versuche aufgebraucht sin
 
-# Main loop
-running = True
-while running:
-    screen.fill(BG_COLOR)
-    mouse_pos = pygame.mouse.get_pos()  # Update mouse position every frame
 
+make_move_button = Button(
+    screen, x=340, y=773, width=60, height=150,
+    text="MAKE\nMOVE",
+    font_path="Mastermind/Assets/Fonts/Inter-Bold.ttf",
+    font_size=10,
+    action=make_move
+)
+
+
+for color in colors:
+    color.dragging = False
+    color.original_position = (color.x, color.y)
+    color.drag_offset = (0, 0)
+
+rows = []
+y_start = 733
+big_radius = 30
+small_radius = 12
+row_gap = 70
+
+active_row = 0
+
+for i in range(tries):
+    # Last row doesn't have small circles
+    include_small = i < 9
+    row = CircleRow(screen, y_start - i * row_gap, big_radius, small_radius, (54, 54, 54), include_small=include_small)
+    rows.append(row)
+
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
-        elif event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
-            handle_drag_and_drop(event)
+            pygame.quit()
+            exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                for color in colors:
+                    if color.is_clicked(event.pos):
+                        color.dragging = True
+                        color.drag_offset = (color.x - event.pos[0], color.y - event.pos[1])
+                        break
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:
+                for color in colors:
+                    if color.dragging:
+                        color.dragging = False
+                        # Erlaube das Platzieren von Farben nur, wenn das Spiel nicht vorbei ist und nicht in der obersten Reihe
+                        if not game_over and active_row < tries - 1:
+                            for circle in rows[active_row].circles[:4]:
+                                if circle.is_clicked(event.pos):
+                                    circle.update_circle(circle.x, circle.y, circle.r, color.color)
+                        color.x, color.y = color.original_position
 
-    if BUTTON_RECT.collidepoint(mouse_pos) and pygame.mouse.get_pressed()[0]:
-        check_guess()
+        elif event.type == pygame.MOUSEMOTION:
+            for color in colors:
+                if color.dragging:
+                    color.x = event.pos[0] + color.drag_offset[0]
+                    color.y = event.pos[1] + color.drag_offset[1]
+        make_move_button.handle_event(event)
+    
+    if make_move_button.clicked:  # Wenn der Button geklickt wurde
+        make_move_button.action()  # Rufen Sie die Aktion des Buttons auf
+        make_move_button.clicked = False  # Setzen Sie den Status zurück
 
-    # Update notification message
-    if notification_msg and pygame.time.get_ticks() - notification_time > 2000:
-        notification_msg = ''
+    screen.fill(("#252525"))
+    screen.blit(header, (0, 0))
+    screen.blit(header_title, (156, 19))
+    screen.blit(header_arrow, (23, 18))
+    screen.blit(clr_store, (40, 773))
 
-    draw_board()
-    draw_ui()
+    make_move_button.draw()
 
-    # If we're dragging a peg, blit it at the mouse position
-    if dragging and dragged_peg_surface:
-        screen.blit(dragged_peg_surface, dragged_peg_pos)
+    blue.draw_circle()
+    orange.draw_circle()
+    red.draw_circle()
+    purple.draw_circle()
+    dark_green.draw_circle()
+    light_green.draw_circle()
+    black.draw_circle()
+    white.draw_circle()
+    
+    for color in colors:
+        if not color.dragging:  # Only draw the color if not currently being dragged
+            color.draw_circle()
+    
+    for row in rows:
+        row.draw()
 
-    pygame.display.flip()
-
-pygame.quit()
+    # If dragging a color, draw it on top
+    for color in colors:
+        if color.dragging:
+            color.draw_circle()
+    
+    pygame.display.update()
+    clock.tick(60)

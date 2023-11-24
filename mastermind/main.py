@@ -1,11 +1,7 @@
-from logic import Mastermind
+from menu import main_menu
 
-# Start the game loop
-game_terminal = Mastermind()
-while True:
-    game_terminal.play_terminal()
-    play_again = input("Do you want to play again? (y/n): ").lower()
-    if play_again == "n":
-        break
-    elif play_again == "y":
-        game_terminal = Mastermind() # Reset the game state
+def main():
+    main_menu()
+
+if __name__ == "__main__":
+    main()

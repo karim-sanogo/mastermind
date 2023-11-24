@@ -96,31 +96,29 @@ def user_pick(code_user):
 def color_check(code_user, code_cpu):
     global round
     color_match_cpu = {}
-    color_match_user = {}
     correct_position = 0 
     incorrect_position = 0   
 
-    # Check if color value is in code_cpu, if so add color to color_match dict
+    # Count the frequency of each color in the CPU's code
     for color in code_cpu.values():
         color_match_cpu[color] = color_match_cpu.get(color, 0) + 1
     
-    # Count correct positioned colors
+    # First, count correctly positioned colors
     for space in code_user:
-        # Get color from code_user and code_cpu
         user_color = code_user[space]
         cpu_color = code_cpu[space]
-        # Count colors in code_user, if color is not in dict, add it with value 0
-        color_match_user[user_color] = color_match_user.get(user_color, 0) + 1
-        
         if user_color == cpu_color:
-            # If color matches, add 1 to correct_position and subtract 1 from color_match_cpu, because color is already matched
             correct_position += 1
             color_match_cpu[cpu_color] -= 1
     
-    # Count incorrect positioned colors
-    # For every color in code_user, check if color is in code_cpu, if so, add the lower value of both to incorrect_position
-    for user_color, count in color_match_user.items():
-        incorrect_position += min(count, color_match_cpu.get(user_color, 0))
+    # Then, count incorrectly positioned colors
+    for space in code_user:
+        user_color = code_user[space]
+        cpu_color = code_cpu[space]
+        # Only count as incorrect if the color is in the CPU's code and not already matched
+        if user_color != cpu_color and color_match_cpu.get(user_color, 0) > 0:
+            incorrect_position += 1
+            color_match_cpu[user_color] -= 1
     
     round += 1
     return correct_position, incorrect_position

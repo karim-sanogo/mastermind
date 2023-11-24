@@ -9,6 +9,7 @@ class Mastermind:
         self.code_cpu = self.code_build().copy()
         self.code_user = self.code_build().copy()
         self.color_menu = {index + 1: color for index, color in enumerate(self.code_range)}
+        self.history = []
 
     def code_build(self):
         return {f"Space {i+1}": None for i in range(self.code_length)}
@@ -25,9 +26,9 @@ class Mastermind:
                 self.code_cpu[key] = color
 
     def menu_swap(self):
-        for space, color_keys in self.code_user.items():
-            if color_keys in self.color_menu:
-                self.code_user[space] = self.color_menu[color_keys]
+        for space, color_index in self.code_user.items():
+            if color_index in self.color_menu:
+                self.code_user[space] = self.color_menu[color_index]
 
     def is_valid_input(self, user_input):
         try:
@@ -35,64 +36,42 @@ class Mastermind:
         except ValueError:
             return False
 
-    def user_pick(self):
-        menu_string = "Please select colors from list:\n"
-        for i in range(1, len(self.color_menu) + 1, 2):
-            first_color = f"[{i}] {self.color_menu[i].title()}"
-            second_color = f"[{i + 1}] {self.color_menu[i + 1].title()}"
-            menu_string += f"  {first_color:15} {second_color}\n"
-        print(menu_string)
-
-        for space in self.code_user:
-            if self.code_user[space] is None:
-                while True:
-                    user_input = input(f"Please select a color for {space}: ")
-                    if self.is_valid_input(user_input):
-                        self.code_user[space] = int(user_input)
-                        self.menu_swap()
-                        break
-                    else:
-                        print("Invalid input. Please enter a number between 1 and 8.")
-
     def color_check(self):
         self.round += 1
         color_match_cpu = {}
-        color_match_user = {}
         correct_position = 0 
         incorrect_position = 0   
 
+        # Zählen der Farben im CPU-Code
         for color in self.code_cpu.values():
             color_match_cpu[color] = color_match_cpu.get(color, 0) + 1
 
+        # Korrekt positionierte Farben überprüfen und Zähler aktualisieren
         for space in self.code_user:
             user_color = self.code_user[space]
             cpu_color = self.code_cpu[space]
-            color_match_user[user_color] = color_match_user.get(user_color, 0) + 1
-            
             if user_color == cpu_color:
                 correct_position += 1
                 color_match_cpu[cpu_color] -= 1
 
-        for user_color, count in color_match_user.items():
-            incorrect_position += min(count, color_match_cpu.get(user_color, 0))
+        # Inkorrekt positionierte Farben überprüfen
+        for space in self.code_user:
+            user_color = self.code_user[space]
+            cpu_color = self.code_cpu[space]
+            if user_color != cpu_color and color_match_cpu.get(user_color, 0) > 0:
+                incorrect_position += 1
+                color_match_cpu[user_color] -= 1
 
         return correct_position, incorrect_position
-
-    def play_terminal(self):
-        self.cpu_pick()
-        print(">>> Welcome to Mastermind! <<<\n")
-        print(f"The CPU's code is {', '.join(self.code_cpu.values()).title()}\n")
+    
+    def add_to_history(self, code_user, feedback):
+        self.history.append((code_user.copy(), feedback))
         
-        for _ in range(1, self.tries + 1):
-            self.user_pick()
-            correct_position, incorrect_position = self.color_check()
-            if correct_position == 4:
-                print(f"\nYou won in {self.round} tries!\n")
-                break
-            print(f"\nCorrect position: {correct_position}")
-            print(f"Incorrect position: {incorrect_position}\n")
-            print(f"You have {self.tries - self.round} tries left.\n")
-
-            self.code_user = self.code_build().copy()
-        else:
-            print(f"You lost! The correct colors were: {', '.join(self.code_cpu.values()).title()}")
+    def get_game_status(self):
+        return {
+            "cpu_code": self.code_cpu,
+            "user_code": self.code_user,
+            "round": self.round,
+            "tries": self.tries
+        }
+    

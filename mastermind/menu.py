@@ -3,11 +3,15 @@ from twoplayer import twoplayer
 
 def main_menu():
     while True:
-        print("Welcome to MASTERMIND\n")
-        print("Please select one of the following options:\n")
-        print("[1] Singleplayer")
-        print("[2] Two Player")
-        print("[3] Quit Game\n")
+        print("""
+        Welcome to MASTERMIND
+
+        Please select one of the following options:
+
+        [1] Singleplayer
+        [2] Two Player
+        [3] Quit Game
+        """)
 
         choice = input("Enter your choice: ")
         if choice == "1":

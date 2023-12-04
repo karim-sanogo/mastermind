@@ -1,4 +1,5 @@
 from itertools import product
+import random
 round=0
 code_range = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white"]
 code_lenght = 4
@@ -88,5 +89,9 @@ def act_possible_codes(possible_codes,code_user,code_cpu):
 
 possible_codes = act_possible_codes(possible_codes,code_user,code_cpu)
 print(len(possible_codes))
-    
-    
+
+###--- Funktion wählt einen zufälligen code aus possible_codes als pick aus
+
+def code_bot(possible_codes):
+    pick = random.choice(list(possible_codes.values()))
+    return pick

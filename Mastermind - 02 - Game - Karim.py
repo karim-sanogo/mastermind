@@ -1,6 +1,6 @@
 import random
 
-colors = ["red", "blue", "green", "yellow", "purple", "pink"]
+colors = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white"]
 tries = 10
 
 def player_choice():

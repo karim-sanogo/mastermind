@@ -36,8 +36,9 @@ class Mastermind:
         except ValueError:
             return False
 
-    def color_check(self):
-        self.round += 1
+    def color_check(self, count_round=True):
+        if count_round:
+            self.round += 1
         color_match_cpu = {}
         correct_position = 0 
         incorrect_position = 0   

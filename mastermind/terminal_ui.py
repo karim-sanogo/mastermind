@@ -1,8 +1,11 @@
 from logic import Mastermind
+from bot import Bot
 
 class TerminalUI:
-    def __init__(self, game=None):
+    def __init__(self, game=None, bot_assistance=False):
         self.game = game if game is not None else Mastermind()
+        self.bot_assistance = bot_assistance
+        self.bot = Bot(self.game) if bot_assistance else None
 
     def user_pick(self):
         menu_string = "Please select colors from list:\n"
@@ -34,13 +37,21 @@ class TerminalUI:
         print(f"\nThe CPU's code is {', '.join(self.game.code_cpu.values()).title()}\n")
         
         for _ in range(1, self.game.tries + 1):
-            self.user_pick()
+            player_made_choice = True
+            if self.bot_assistance:
+                bot_decision = input("Do you want to use the bot's pick for this round? (y/n): ").lower()
+                if bot_decision == 'y':
+                    self.game.code_user = self.bot.code_bot()
+                    player_made_choice = False
+
+            if player_made_choice:
+                self.user_pick()
             correct_position, incorrect_position = self.game.color_check()
             print()
             self.game.add_to_history(self.game.code_user, (correct_position, incorrect_position))
 
             self.display_history()
-            if correct_position == 4:
+            if correct_position == Mastermind().code_length:
                 print(f"\nYou won in {self.game.round} tries!\n")
                 break
 

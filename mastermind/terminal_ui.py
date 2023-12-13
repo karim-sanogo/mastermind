@@ -1,5 +1,6 @@
 from logic import Mastermind
 from bot import Bot
+import singleplayer
 
 class TerminalUI:
     def __init__(self, game=None, bot_assistance=False):
@@ -47,6 +48,7 @@ class TerminalUI:
             if player_made_choice:
                 self.user_pick()
             correct_position, incorrect_position = self.game.color_check()
+            self.bot.act_possible_codes()#-----------------------------------------------------------------------------------------Aktualisierung des Bot-Dicts
             print()
             self.game.add_to_history(self.game.code_user, (correct_position, incorrect_position))
 

@@ -46,19 +46,19 @@ class Bot():
         #print(self.possible_codes)------------------------------------------------------For Testing
 
 
-    def act_possible_codes(self):
+    def act_possible_codes(self, pick_user):
         wrong_codes = set()
         #for code_name, code in self.possible_codes.items():
         #    if Mastermind.color_check(self.code_user, code) != self.correct_position:
         #        wrong_codes.add(code_name)
         #for key in wrong_codes:
         #    del self.possible_codes[key]
-        print(f"corr:{self.correct_position}\tincorr:{self.incorrect_position}")
-        print(f"Usercode: {self.code_user}")
+        print(f"correct, incorrect:{Mastermind.check}")
+        print(f"Usercode: {pick_user}")
         print(f"CPU-Code: {self.code_cpu}")
         for code in self.possible_codes:
             mastercode = copy.deepcopy(self.possible_codes[code])
-            pick = copy.deepcopy(self.code_user)
+            pick = copy.deepcopy(pick_user)
             correct_position_bot = 0
             incorrect_position_bot = 0
             for key in mastercode:
@@ -74,7 +74,7 @@ class Bot():
                         mastercode[key_m] = "+"
                         pick[key_b] = "-"
             
-            if correct_position_bot != self.correct_position or incorrect_position_bot != self.incorrect_position:
+            if (correct_position_bot, incorrect_position_bot) != Mastermind.check:
                 wrong_codes.add(code)
         
         for key in wrong_codes:

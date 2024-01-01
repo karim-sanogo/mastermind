@@ -4,8 +4,6 @@ import singleplayer
 
 class TerminalUI:
 
-    user_code = {}
-
     def __init__(self, game=None, bot_assistance=False):
         self.game = game if game is not None else Mastermind()
         self.bot_assistance = bot_assistance
@@ -38,6 +36,7 @@ class TerminalUI:
 
     def play_terminal(self):
         self.game.cpu_pick()
+        self.bot.possible_codes_dict()
         print(f"\nThe CPU's code is {', '.join(self.game.code_cpu.values()).title()}\n")
         
         for _ in range(1, self.game.tries + 1):
@@ -51,7 +50,7 @@ class TerminalUI:
             if player_made_choice:
                 self.user_pick()
             correct_position, incorrect_position = self.game.color_check()
-            self.bot.act_possible_codes()#-----------------------------------------------------------------------------------------Aktualisierung des Bot-Dicts
+            self.bot.act_possible_codes(self.game.code_user)#-----------------------------------------------------------------------------------------Aktualisierung des Bot-Dicts
             print()
             self.game.add_to_history(self.game.code_user, (correct_position, incorrect_position))
 

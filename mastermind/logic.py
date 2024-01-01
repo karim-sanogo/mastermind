@@ -2,8 +2,8 @@ import random
 
 class Mastermind:
 
-    check = (0, 0)    
-
+    check = (0, 0)
+     
     def __init__(self):
         self.code_range = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white"]
         self.round = 0
@@ -13,6 +13,8 @@ class Mastermind:
         self.code_user = self.code_build().copy()
         self.color_menu = {index + 1: color for index, color in enumerate(self.code_range)}
         self.history = []
+
+    
 
     def code_build(self):
         return {f"Space {i+1}": None for i in range(self.code_length)}

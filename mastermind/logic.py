@@ -1,6 +1,9 @@
 import random
 
 class Mastermind:
+
+    check = (0, 0)    
+
     def __init__(self):
         self.code_range = ["red", "blue", "green", "yellow", "purple", "pink", "black", "white"]
         self.round = 0
@@ -63,6 +66,7 @@ class Mastermind:
                 incorrect_position += 1
                 color_match_cpu[user_color] -= 1
 
+        Mastermind.check = (correct_position, incorrect_position)
         return correct_position, incorrect_position
     
     def add_to_history(self, code_user, feedback):

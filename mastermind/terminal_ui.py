@@ -3,6 +3,9 @@ from bot import Bot
 import singleplayer
 
 class TerminalUI:
+
+    user_code = {}
+
     def __init__(self, game=None, bot_assistance=False):
         self.game = game if game is not None else Mastermind()
         self.bot_assistance = bot_assistance

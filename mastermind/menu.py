@@ -1,40 +1,37 @@
-from singleplayer import singleplayer
-from twoplayer import twoplayer
+from mastermind.singleplayer import singleplayer
+from mastermind.twoplayer import twoplayer
 
-def main_menu():
-    while True:
-        print(f"""
-        Welcome to MASTERMIND
+class MainMenu:
+    def __init__(self):
+        self.bot_assistance = False
 
-        Please select one of the following options:
+    def display_main_menu(self):
+        while True:
+            print(f"""
+Welcome to MASTERMIND
 
-        [1] Singleplayer
-        [2] Two Player
-        [3] Toggle Bot Assistance for 1p (Currently: {"ON" if bot_assistance else "OFF"})
-        [4] Quit Game
-        """)
+Please select one of the following options:
 
-        choice = input("Enter your choice: ")
-        if choice == "1":
-            singleplayer()
-        elif choice == "2":
-            twoplayer()
-        elif choice == "3":
-            toggle_bot_assistance()
-        elif choice == "4":
-            print("Thanks for playing!")
-            break
-        else:
-            print("Invalid choice. Please enter 1, 2, or 3.")
+[1] Singleplayer
+[2] Two Player
+[3] Toggle Bot Assistance for 1p (Currently: {"ON" if self.bot_assistance else "OFF"})
+[4] Quit Game
+            """)
 
-if __name__ == "__main__":
-    main_menu()
+            choice = input("Enter your choice: ")
+            if choice == "1":
+                singleplayer(self.bot_assistance)
+            elif choice == "2":
+                twoplayer()
+            elif choice == "3":
+                self.toggle_bot_assistance()
+            elif choice == "4":
+                print("Thanks for playing!")
+                break
+            else:
+                print("Invalid choice. Please enter a number between 1 and 4.")
 
-
-bot_assistance = False
-
-def toggle_bot_assistance():
-    global bot_assistance
-    bot_assistance = not bot_assistance
-    status = "enabled" if bot_assistance else "disabled"
-    print(f"Bot assistance has been {status}.")
+    def toggle_bot_assistance(self):
+        self.bot_assistance = not self.bot_assistance
+        status = "enabled" if self.bot_assistance else "disabled"
+        print(f"\nBot assistance has been {status}.")

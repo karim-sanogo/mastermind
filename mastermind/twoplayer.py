@@ -1,6 +1,6 @@
-from name_input import get_player_name
-from logic import Mastermind
-from terminal_ui import TerminalUI
+from mastermind.logic import Mastermind
+from mastermind.terminal_ui import TerminalUI
+
 
 def get_codemaker_code(game):
     code = {}
@@ -23,18 +23,20 @@ def get_codemaker_code(game):
 
 def twoplayer():
     while True:
+        game = Mastermind()
+        ui = TerminalUI(game)
         print("\nCodemaker:")
-        codemaker_name = get_player_name()
+        codemaker_name = ui.get_player_name()
         print("\nCodebreaker:")
-        codebreaker_name = get_player_name()
+        codebreaker_name = ui.get_player_name()
         
         print(f"\n\nWelcome Codemaker {codemaker_name} and Codebreaker {codebreaker_name}!\n")
 
-        game = Mastermind()
+
         custom_code = get_codemaker_code(game)  # Codemaker wählt den Code
         game.code_cpu = custom_code  # Setzt den benutzerdefinierten Code
 
-        ui = TerminalUI(game)
+
         ui.play_terminal()
 
         play_again = input("Do you want to play again? (y/n): ").lower()

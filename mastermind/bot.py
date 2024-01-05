@@ -1,7 +1,8 @@
 from itertools import product
 import copy
 import random
-from logic import Mastermind
+from mastermind.logic import Mastermind
+
 
 class Bot():
 

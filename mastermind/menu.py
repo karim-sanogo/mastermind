@@ -15,7 +15,7 @@ Please select one of the following options:
 
 [1] Singleplayer
 [2] Two Player
-[3] Toggle Bot Assistance for 1p (Currently: {"ON" if self.bot_assistance else "OFF"})
+[3] Toggle Bot Assistance for SP (Currently: {"ON" if self.bot_assistance else "OFF"})
 [4] Quit Game
             """)
 

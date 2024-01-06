@@ -1,5 +1,6 @@
 from mastermind.logic import Mastermind
 from mastermind.terminal_ui import TerminalUI
+import os
 
 
 class GameMode:
@@ -21,6 +22,11 @@ class GameMode:
         print(f"\n\nWelcome Codemaker {codemaker_name} and Codebreaker {codebreaker_name}!\n")
         custom_code = ui.get_codemaker_code()  # Using the new method in TerminalUI
         game.code_cpu = custom_code
+
+        # clears Terminal so that the Codebreaker can't see the Codemaker's code
+        os.system('cls')
+
+        print ("The Codemaker has chosen his code. Now it's your turn, Codebreaker!\n")
         ui.play_terminal()
 
             # play_again = input("Do you want to play again? (y/n): ").lower()

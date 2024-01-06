@@ -47,7 +47,7 @@ class TerminalUI:
         if self.bot_assistance:
             self.bot.possible_codes_dict()
 
-        print(f"\nThe CPU's code is {', '.join(self.game.code_cpu.values()).title()}\n")
+        # print(f"\nThe CPU's code is {', '.join(self.game.code_cpu.values()).title()}\n") #---------------------------------------------------For Testing
         
         for _ in range(1, self.game.tries + 1):
             player_made_choice = True

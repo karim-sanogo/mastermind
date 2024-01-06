@@ -89,6 +89,26 @@ class TerminalUI:
             else:
                 print("Name cannot be empty. Please enter a valid name.")
     
+    
+    def get_codemaker_code(self):
+        code = {}
+        menu_string = "CODEBREAKER PLEASE LOOK AWAY!\n\nCodemaker, please select colors for the code:\n"
+        for i in range(1, len(self.game.color_menu) + 1, 2):
+            first_color = f"[{i}] {self.game.color_menu[i].title()}"
+            second_color = f"[{i + 1}] {self.game.color_menu[i + 1].title()}"
+            menu_string += f"  {first_color:15} {second_color}\n"
+        print(menu_string)
+
+        for i in range(1, self.game.code_length + 1):
+            while True:
+                user_input = input(f"Select a color for Space {i}: ")
+                if self.game.is_valid_input(user_input):
+                    code[f"Space {i}"] = self.game.color_menu[int(user_input)]
+                    break
+                else:
+                    print("\nInvalid input. Please enter a number from the menu.")
+        return code
+    
 
 # def start_terminal_game():
 #     ui = TerminalUI()

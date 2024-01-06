@@ -1,9 +1,10 @@
-from mastermind.game_mode import singleplayer,twoplayer
+from mastermind.game_mode import GameMode
 
 
 class MainMenu:
     def __init__(self):
         self.bot_assistance = False
+        self.game_mode = GameMode()
 
     def display_main_menu(self):
         while True:
@@ -20,9 +21,9 @@ Please select one of the following options:
 
             choice = input("Enter your choice: ")
             if choice == "1":
-                singleplayer(self.bot_assistance)
+                self.game_mode.singleplayer(self.bot_assistance)
             elif choice == "2":
-                twoplayer()
+                self.game_mode.twoplayer()
             elif choice == "3":
                 self.toggle_bot_assistance()
             elif choice == "4":

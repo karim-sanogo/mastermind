@@ -1,5 +1,5 @@
-from mastermind.singleplayer import singleplayer
-from mastermind.twoplayer import twoplayer
+from mastermind.game_mode import singleplayer,twoplayer
+
 
 class MainMenu:
     def __init__(self):

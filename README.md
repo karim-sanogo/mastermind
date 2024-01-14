@@ -8,8 +8,8 @@ This Mastermind game is a Python-based project developed as part of the "Program
 To get started with this game, clone the repository to your local machine. Ensure you have Python installed on your system. The game is developed using Python's standard library, so no additional installations are required.
 
 ```bash
-git clone https://github.com/karim-sanogo/mastermind-kpd-projekt.git
-cd mastermind-kpd-projekt
+git clone https://github.com/karim-sanogo/mastermind.git
+cd mastermind
 ```
 
 ## Usage

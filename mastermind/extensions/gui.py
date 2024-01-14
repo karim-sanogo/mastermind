@@ -1,7 +1,6 @@
 import logic
 import pygame
 from sys import exit
-import math
 
 mm = logic.Mastermind()
 

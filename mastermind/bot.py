@@ -18,12 +18,16 @@ class Bot():
 
     def possible_codes_dict(self, allow_duplicates=True):
 
-        #---------------- die product funktion generiert eine Menge mit allen Tupeln, die sich aus code_range und code_lenght, diese ist aber nicht subscriptable, daher die Umwandlung in eine Liste
+        #--de------------ die product funktion generiert eine Menge mit allen Tupeln, die sich aus code_range und code_lenght, diese ist aber nicht subscriptable, daher die Umwandlung in eine Liste
+        #--en------------ the product function generates a set with all tuples resulting from code_range and code_lenght, but this is not subscriptable, hence the conversion to a list
         possible_codes = [i for i in product(self.code_range, repeat=self.code_length)]
 
-        #------ Es wird ein nested dictionary erstellt, das auf der ersten Ebene einen Key mit dem Namen "Code {i+1}" für jedes in possible_codes enthaltenes Tupel. Diesem Key wird ein leeres dictionary zugeordnet. Auf der zweiten Ebene wird für jedes Element in einem dieser Tupel ein Key mit dem Namen "Space {j+1}" erzeugt und ihm der Wert des entsprechenden Elementes zugewiesen.
+        #--de-- Es wird ein nested dictionary erstellt, das auf der ersten Ebene einen Key mit dem Namen "Code {i+1}" für jedes in possible_codes enthaltenes Tupel. Diesem Key wird ein leeres dictionary zugeordnet. Auf der zweiten Ebene wird für jedes Element in einem dieser Tupel ein Key mit dem Namen "Space {j+1}" erzeugt und ihm der Wert des entsprechenden Elementes zugewiesen.
         #------ multi_color_key speichert keys zu Codes, in denen Farben mehfach verwendet
         #------ used_colors speichert Farben, die in einem Code bereits verwendet wurden
+        #--en-- A nested dictionary is created that contains a key with the name "Code {i+1}" on the first level for each tuple contained in possible_codes. An empty dictionary is assigned to this key. At the second level, a key with the name "Space {j+1}" is created for each element in one of these tuples and the value of the corresponding element is assigned to it.
+        #------ multi_color_key stores keys for codes in which colors are used multiple times.
+        #------ used_colors saves colors that have already been used in a code
         possible_codes_dict = {}
         multi_color_key = set()
         for i in range(len(possible_codes)):
@@ -37,7 +41,8 @@ class Bot():
                     else:
                         multi_color_key.add(f"Code {i+1}")
 
-        #------- if Abfrage, die die in multi_color_keys gespeicherten Keys aus dem possible_codes_dict löscht, falls keine Mehrfachfarben erlaubt sind                 
+        #--de--- if Abfrage, die die in multi_color_keys gespeicherten Keys aus dem possible_codes_dict löscht, falls keine Mehrfachfarben erlaubt sind
+        #--en--- if query that deletes the keys stored in multi_color_keys from the possible_codes_dict if no multiple colors are allowed
         if allow_duplicates == False:
             for key in multi_color_key:
                 del possible_codes_dict[key]
@@ -49,15 +54,10 @@ class Bot():
 
     def act_possible_codes(self, pick_user):
         wrong_codes = set()
-        #for code_name, code in self.possible_codes.items():
-        #    if Mastermind.color_check(self.code_user, code) != self.correct_position:
-        #        wrong_codes.add(code_name)
-        #for key in wrong_codes:
-        #    del self.possible_codes[key]
 
         # print(f"correct, incorrect:{Mastermind.check}") #----------------------------------for Testing
-        # print(f"Usercode: {pick_user}")
-        # print(f"CPU-Code: {self.code_cpu}")
+        # print(f"Usercode: {pick_user}") #----------------------------------for Testing
+        # print(f"CPU-Code: {self.code_cpu}") #----------------------------------for Testing
         for code in self.possible_codes:
             mastercode = copy.deepcopy(self.possible_codes[code])
             pick = copy.deepcopy(pick_user)
@@ -85,23 +85,17 @@ class Bot():
         # print("possible_codes aktualisiert; Länge:", len(self.possible_codes)) #------------------for Testing
         # print(f"Mastercode: {mastercode}")---------------------------------------------------for Testing
 
-    # def act_possible_codes(self):
-    #     wrong_codes = set()   
-    #     for code in self.possible_codes:
-    #         if Mastermind.color_check(self.code_user, self.code_cpu) != Mastermind.color_check(self.code_user, self.code_cpu[code]):
-    #             wrong_codes.add(code)
-    #     for key in wrong_codes:
-    #         del self.possible_codes[key]
-
-
-    ###--- Funktion wählt einen zufälligen code aus possible_codes als pick aus
+    ###-de- Funktion wählt einen zufälligen code aus possible_codes als pick aus
+    ###-en- Function selects a random code from possible_codes as pick
 
     def code_bot(self):
-        # Stellen Sie sicher, dass self.possible_codes initialisiert ist
+        #--de-- Stellen Sie sicher, dass self.possible_codes initialisiert ist
+        #--en-- Make sure that self.possible_codes is initialized
         if not self.possible_codes:
             self.possible_codes_dict()
 
-        # Wählen Sie einen zufälligen Code aus den möglichen Codes
+        #--de-- Wählen Sie einen zufälligen Code aus den möglichen Codes
+        #--en-- Select a random code from the possible codes
         pick = random.choice(list(self.possible_codes.values()))
         print(f"Bot wählt: {pick}")
         return pick
